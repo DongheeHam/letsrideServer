@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/jdbc  http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+	
+		
+	<tx:annotation-driven proxy-target-class="true" /> 
+ 	<context:component-scan base-package="clabs.srv.service"/>
+ 	
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+ 	    <property name="driverClassName" value="#{app['database.driver']}"/>
+		<property name="url" value="#{app['database.url']}"/>
+		<property name="username" value="#{app['database.user']}"/>
+		<property name="password" value="#{app['database.password']}"/>
+        <property name="maxTotal" value="10" />
+        <property name="removeAbandonedOnBorrow" value="true" />
+        <property name="removeAbandonedTimeout" value="60" />
+        <property name="logAbandoned" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="validationQuery" value="#{app['database.validationQuery']}"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="numTestsPerEvictionRun" value="6"/>
+        <property name="timeBetweenEvictionRunsMillis" value="#{app['database.runMills']}"/>			
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+
+	<aop:config>
+		<aop:pointcut expression="execution(public * clabs.srv.service..*Service.*(..))" id="serviceTransactionMethod"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceTransactionMethod" />
+	</aop:config>	
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="delete*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="modify*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="remove*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+
+</beans>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="clabs.srv.mapper.LetsMapper">
+	
+	<!-- <select id="getServiceKey" parameterType="java.util.HashMap" resultType="keyMap">
+    	select * from SP_LIST where SERVICE_KEY=#{SERVICE_KEY}
+    </select>
+    <select id="getCurrentKeys" parameterType="java.util.HashMap" resultType="keyMap">
+    	select ENCRYPT_KEY,COOKIE_KEY from CURRENT_KEYS order by VERSION desc limit 1
+    </select>
+	<insert id="insertNewKeys" parameterType="java.util.HashMap" >
+    	insert into CURRENT_KEYS (ENCRYPT_KEY,COOKIE_KEY) values 
+    	(#{ENCRYPT_KEY},#{COOKIE_KEY}) 
+    </insert> -->
+	<!-- <delete id="deleteUser" parameterType="java.util.HashMap">delete from MEMBER where UNO=#{uno}</delete> -->
+	
+	<select id="getUserById" parameterType="java.util.HashMap" resultType="keyMap">
+    	select * from USER where id=#{id}
+    </select>
+    <update id="updateUser" parameterType="java.util.HashMap"> 
+		update USER set nickname=#{nickname}, imagepath=#{profile_image}, gender=#{gender},l_token=#{l_token}, 
+		access_token=#{access_token}, date=now() where id=#{id}
+	</update>
+	<insert id="insertUser" parameterType="java.util.HashMap" >
+    	insert into USER (id,nickname,imagepath,gender,l_token,access_token,date) values
+    	(#{id},#{nickname},#{imagepath},#{gender},#{l_token},#{access_token},now())
+    </insert>
+    <select id="getUserByLT" parameterType="java.util.HashMap" resultType="keyMap">
+    	select * from USER where l_token=#{l_token}
+    </select>
+    <update id="updateLtoken" parameterType="java.util.HashMap"> 
+		update USER set l_token=#{new_l_token}, access_token=#{access_token} where id=#{id}
+	</update>
+	<insert id="openSession" parameterType="java.util.HashMap" >
+    	insert into SESSION (l_token,sessionid,date) values (#{sessionLt},#{sessionid},now())
+    </insert>
+</mapper>
