@@ -1,4 +1,4 @@
-package clabs.tools;
+/*package clabs.tools;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -23,4 +23,4 @@ public class JsonEncoder implements Encoder.TextStream<JsonObject> {
 
     @Override
     public void destroy() {}
-}
+}*/

@@ -1,6 +1,7 @@
 package clabs.controller;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -75,6 +76,11 @@ public class MainController extends BaseController {
 	public @ResponseBody ResObject init(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
 		logger.info("init.json - params : "+params);
 		ResObject atCheck=letsService.tokenCheck(params.get("access_token"));
+		Enumeration<String> headerNames = request.getHeaderNames();
+		while(headerNames.hasMoreElements()) {
+		  String headerName = (String)headerNames.nextElement();
+		  System.out.println("" + headerName+" : "+request.getHeader(headerName));
+		}
 		logger.info("atCheck : "+atCheck);
 		if(atCheck.getRc()!=1) { // at 유효성 체크
 			return atCheck;

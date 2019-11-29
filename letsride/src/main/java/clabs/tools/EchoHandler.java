@@ -1,4 +1,4 @@
-/*package clabs.tools;
+package clabs.tools;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,13 +46,6 @@ public class EchoHandler  extends TextWebSocketHandler{
         map.put("imagepath", re.get("imagepath"));
         map.put("nickname", re.get("nickname"));
         
-        try {
-            //final Basic basic=session.getBasicRemote();
-            session.sendMessage(new TextMessage("Connection Established"));
-        }catch (Exception e) {
-            // TODO: handle exception
-            System.out.println(e.getMessage());
-        }
         
         sessionList.put(session.getId(), map);
         
@@ -104,9 +97,9 @@ public class EchoHandler  extends TextWebSocketHandler{
             System.out.println(e.getMessage());
         }
     }
-      모든 사용자에게 메시지를 전달한다.
-      @param self
-      @param message
+      //모든 사용자에게 메시지를 전달한다.
+      //@param self
+      //@param message
      
     private void sendAllSessionToMessage(WebSocketSession session,TextMessage message) {
     	logger.info("sendAllSessionToMessage-message = "+message);
@@ -124,4 +117,3 @@ public class EchoHandler  extends TextWebSocketHandler{
     }
 
 }
-*/

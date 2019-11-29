@@ -334,7 +334,7 @@
 </body>
 <script>
 var host='http://localhost:7070/';
-var wshost='ws://localhost:7070/echo/';
+var wshost='ws://localhost:7070/echo.do';
 //var host='https://letsride.donghee.site/';
 //var wshost='wss://letsride.donghee.site/echo.do';
 var defaultImage='/res/img/defaultImage.jpg';
@@ -467,7 +467,7 @@ function chat_openSocket(){
     
     //웹소켓 객체 만드는 코드
     //ws=new WebSocket(wshost+JSON.stringify(params));
-    ws=new WebSocket(wshost+window.localStorage.getItem("l_token"));
+    ws=new WebSocket(wshost+"?"+window.localStorage.getItem("l_token"));
     
     ws.onopen=function(event){
         if(event.data===undefined) return;

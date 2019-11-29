@@ -1,4 +1,4 @@
-package clabs.controller;
+/*package clabs.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,14 +73,14 @@ public class ChatController extends TextWebSocketHandler{
         logger.info("eeeeeeeee");
         map.put("l_token", l_token);
         logger.info("rrrrrrrrrrr"); //여기까지 뜨고 끊기네 ?? 왜?
-        /*logger.info("db에서 가쟈온 nickname : "+letsService.getUserByLT(l_token).get("nickname"));
+        logger.info("db에서 가쟈온 nickname : "+letsService.getUserByLT(l_token).get("nickname"));
         Map<String,Object> re=letsMapper.getUserByLT(l_token);
         logger.info("wwwwwww re : " +re);
         
         //session.getUserProperties().put("l_token", l_token);
         session.getUserProperties().put("nickname", re.get("nickname"));
         session.getUserProperties().put("imagepath", re.get("imagepath"));
-        */
+        
         try {
             final Basic basic=session.getBasicRemote();
             basic.sendText("Connection Established");
@@ -94,10 +94,10 @@ public class ChatController extends TextWebSocketHandler{
         logger.info("22현재 sessionList : "+sessionList.size());
     }
     
-  /*    모든 사용자에게 메시지를 전달한다.
+      모든 사용자에게 메시지를 전달한다.
       @param self
       @param message
-     */
+     
     private void sendAllSessionToMessage(Session self,String message) {
     	logger.info("sendAllSessionToMessage-message = "+message);
     	
@@ -108,16 +108,16 @@ public class ChatController extends TextWebSocketHandler{
                 if(!self.getId().equals(sessionid)) {
                     Session s=(Session)sessionList.get(sessionid).get("session");
                     s.getBasicRemote().sendText(message);
-                    /*JsonObject event = Json.createObjectBuilder().
+                    JsonObject event = Json.createObjectBuilder().
                             add("sender",(String)s.getUserProperties().get("nickname")).
                             add("message",message).
                             add("imagepath",(String)s.getUserProperties().get("imagepath")).
                             add("l_token",(String)s.getUserProperties().get("l_token")).
                             build();
-                    s.getBasicRemote().sendObject(event);*/
+                    s.getBasicRemote().sendObject(event);
                 } 
             }
-        	/*for(Session s: sessionList) {
+        	for(Session s: sessionList) {
         		JsonObject event = Json.createObjectBuilder().
                         add("sender",(String)s.getUserProperties().get("nickname")).
                         add("message",message).
@@ -125,7 +125,7 @@ public class ChatController extends TextWebSocketHandler{
                         add("l_token",(String)s.getUserProperties().get("l_token")).
                         build();
                 s.getBasicRemote().sendObject(event);
-        	} */
+        	} 
         	
         }catch (Exception e) {
             // TODO: handle exception
@@ -156,3 +156,4 @@ public class ChatController extends TextWebSocketHandler{
     }
 
 }
+*/
