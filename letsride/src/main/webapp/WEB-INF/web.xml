@@ -79,7 +79,7 @@
   </session-config>
   
   <!-- SSL이 설정되기 전까지는 묶어둬야 한다. -->
-<!--   <security-constraint>
+  <security-constraint>
     <web-resource-collection>
       <web-resource-name>exclude SSL Forward</web-resource-name> 
       <url-pattern>/.well-known/*</url-pattern>
@@ -93,5 +93,5 @@
     <user-data-constraint>
       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
     </user-data-constraint>
-  </security-constraint> -->
+  </security-constraint>
 </web-app>

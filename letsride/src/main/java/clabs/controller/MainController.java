@@ -2,6 +2,8 @@ package clabs.controller;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -18,6 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import clabs.srv.mapper.LetsMapper;
 import clabs.srv.service.LetsService;
+import clabs.tools.EchoHandler;
 import clabs.tools.Kakao_restapi;
 import clabs.tools.ResObject;
 import clabs.tools.StringUtils;
@@ -35,7 +38,7 @@ public class MainController extends BaseController {
 	
 	@Autowired LetsService letsService;
 	@Autowired LetsMapper letsMapper;
-	
+	@Autowired EchoHandler echoHandler;
 	/*@Autowired SiSSO	sisso;*/
 	
 	/*
@@ -67,8 +70,6 @@ public class MainController extends BaseController {
 		if("/chatRoom".equals(page)) {
 			model.addAllObjects(params);
 		}
-		
-
 		return model;
 	} 
 
@@ -138,5 +139,150 @@ public class MainController extends BaseController {
 		logger.info("join.json - params : "+params);
 		ResObject a=letsService.tokenCheck(params.get("access_token"));
 		return new ResObject(1, "시스템 관리자 모드로 변환되었습니다.", null);
+	}
+	private ResObject checkParams(Map<String, String> params,String[] keys) {
+		for(int i=0;i<keys.length; i++) {
+			if(!params.containsKey(keys[i]))return new ResObject(-1,"필수 파라미터 누락",null);
+		}
+		if(letsMapper.getUserByLT(params)==null) {
+			return new ResObject(-2,"유저 정보 없음",null);
+		}return new ResObject(1,"");
+	}
+	@RequestMapping(value="/getRoomList.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject getAllRoom(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("getAllRoom.json - params : "+params);
+		String[] needKeys= {"l_token"};
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		
+		Map<String,Object> my=letsMapper.getMyRoom(params);
+		Map<String,Object> attended=letsMapper.getAttendedRoom(params);
+		List<Map<String,Object>> all=letsMapper.getAllRoomByAct();
+		 
+		Map<String,Object> re=new HashMap<String, Object>();
+		re.put("my", my);
+		re.put("attended", attended);
+		re.put("all", all);
+		return new ResObject(1, "success", re);
+	}
+	@RequestMapping(value="/makeMyRoom.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject makeMyRoom(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("makeMyRoom.json - params : "+params);
+		String[] needKeys= {"l_token","title","schedule","gender","destination","sessionId"};
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		if(letsMapper.getMyRoom(params)!=null) {
+			return new ResObject(-3,"이미 만든 방이 있습니다!",null);
+		}
+		
+		try {
+			int re=letsMapper.makeMyRoom(params);
+			Map<String,Object> room=letsMapper.getMyRoom(params);
+			int rno=(int)room.get("rno");
+			EchoHandler.sessionList.get(params.get("sessionId")).put("my_rno",rno);
+			echoHandler.sendNews(echoHandler.buildNewsString(letsMapper.getUserByLT(params).get("nickname")+"님이 들어왔습니다.", ""+rno));
+			return new ResObject(re, "success", room);
+		}catch (Exception e) {
+			e.printStackTrace();
+			return new ResObject(-4,e.getMessage());
+		}
+	}
+	@RequestMapping(value="/deleteMyRoom.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject deleteMyRoom(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("deleteMyRoom.json - params : "+params);
+		String[] needKeys= {"l_token","sessionId","rno"};
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		// userinroom 에서 삭제되는 방에 인원이 있다면 삭제되었다는 메세지 보내기
+		if(letsMapper.getUserInRoom(params)!=null) {
+			String message="{\"deletedRoom\":\""+letsMapper.getRoom(params).get("title")+"\"}";
+			echoHandler.sendRoomMessage(params.get("sessionId"), message, Integer.parseInt(params.get("rno")));
+		}
+		
+		//echoHandler.han
+		int a=letsMapper.deleteMyRoom(params);
+		EchoHandler.sessionList.get(params.get("sessionId")).remove("my_rno");
+		
+		return new ResObject(1, "success", null);
+	}
+	@RequestMapping(value="/goInRoom.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject goInRoom(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("goInRoom.json - params : "+params);
+		// params : l_token,sessionId,rno
+		String[] needKeys= {"l_token","sessionId","rno"};
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		Map<String,Object> room=letsMapper.getRoom(params);
+		try {
+			if((int)room.get("num")>2) {
+				return new ResObject(-3, "이미 가득 찬 방입니다.", null);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+			return new ResObject(-4, "이미 사라진 방입니다.", null);
+		}
+		
+		try {
+			letsMapper.goOutRoom(params);
+			int re=letsMapper.attendRoom(params);
+		}catch (Exception e) {
+			e.printStackTrace();
+			return new ResObject(-5, e.getMessage(), room);
+		}
+		EchoHandler.sessionList.get(params.get("sessionId")).put("attended_rno",Integer.parseInt(params.get("rno")));
+		echoHandler.sendNews(echoHandler.buildNewsString(letsMapper.getUserByLT(params).get("nickname")+"님이 들어왔습니다.", params.get("rno")));
+		return new ResObject(1, "success", room);
+	}
+	@RequestMapping(value="/goOutRoom.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject goOutRoom(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("goOutRoom.json - params : "+params);
+		String[] needKeys= {"l_token","sessionId","rno"};
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		try {
+			EchoHandler.sessionList.get(params.get("sessionId")).remove("attended_rno");
+			letsMapper.goOutRoom(params);
+		}catch (Exception e) {
+			e.printStackTrace();
+			return new ResObject(-3,e.getMessage(),null);
+		}
+		echoHandler.sendNews(echoHandler.buildNewsString(letsMapper.getUserByLT(params).get("nickname")+"님이 나갔습니다.", params.get("rno")));
+		return new ResObject(1, "success", null);
+	}
+	@RequestMapping(value="/getUserInfoThisRoom.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject getUserInfoThisRoom(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("getUserInfoThisRoom.json - params : "+params);
+		String[] needKeys= {"l_token","rno"}; 
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		try {
+			List<Map<String,Object>> users=letsMapper.getUserInfoThisRoom(params);
+			return new ResObject(1, "success", users);
+		}catch (Exception e) {
+			e.printStackTrace();
+			return new ResObject(-3,e.getMessage(),null);
+		}
+	}
+	@RequestMapping(value="/byForever.json", produces="application/json;charset=UTF-8")
+	public @ResponseBody ResObject byForever(HttpServletRequest request, @RequestParam Map<String, String> params) throws IOException{
+		logger.info("byForever.json - params : "+params);
+		String[] needKeys= {"l_token","access_token","id"}; 
+		ResObject checkResult=checkParams(params,needKeys);
+		if(checkResult.getRc()<0) return checkResult;
+		try {
+			ResObject res=Kakao_restapi.unlink(params.get("access_token"));
+			if(res.getRc()<0) {
+				return res;
+			}else {
+				int id=(int)((double)((Map<String,Object>)res.getResult()).get("id"));
+			
+				letsMapper.unlink(params);
+				return new ResObject(1, "success", null); 
+				
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+			return new ResObject(-3,e.getMessage(),null);
+		}
 	}
 }

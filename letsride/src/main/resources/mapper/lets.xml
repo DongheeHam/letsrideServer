@@ -31,7 +31,46 @@
     <update id="updateLtoken" parameterType="java.util.HashMap"> 
 		update USER set l_token=#{new_l_token}, access_token=#{access_token} where id=#{id}
 	</update>
-	<insert id="openSession" parameterType="java.util.HashMap" >
-    	insert into SESSION (l_token,sessionid,date) values (#{sessionLt},#{sessionid},now())
+	<delete id="unlink" parameterType="java.util.HashMap"> 
+		delete from USER where access_token=#{access_token}
+	</delete>
+	
+	<!-- room -->
+	<select id="getAllRoomByAct" parameterType="java.util.HashMap" resultType="keyMap"><!-- 최근 채팅순 -->
+    	select * from ROOM order by date desc
+    </select>
+    <select id="getAllRoomByGen" parameterType="java.util.HashMap" resultType="keyMap"><!-- 성별 -->
+    	select a.* from ROOM a left join CHAT b on a.rno=b.rno where gender=#{gender} order by b.date desc
+    </select>
+    <select id="getAllRoomByDestination" parameterType="java.util.HashMap" resultType="keyMap"><!-- 도착지 -->
+    	select a.* from ROOM a left join CHAT b on a.rno=b.rno where destination=#{destination} order by b.date desc
+    </select>
+    <select id="getMyRoom" parameterType="java.util.HashMap" resultType="keyMap"><!-- 도착지 -->
+    	select * from ROOM where maker=#{l_token}
+    </select>
+    <select id="getAttendedRoom" parameterType="java.util.HashMap" resultType="keyMap"><!-- 도착지 -->
+    	select * from ROOM a left join USER_IN_ROOM b on a.rno=b.rno where l_token=#{l_token}
+    </select>
+    <insert id="makeMyRoom" parameterType="java.util.HashMap" >
+    	insert into ROOM (title,maker,schedule,gender,destination) values
+    	(#{title},#{l_token},#{schedule},#{gender},#{destination})
     </insert>
+    <insert id="attendRoom" parameterType="java.util.HashMap" >
+    	insert into USER_IN_ROOM (rno,l_token) values (#{rno},#{l_token})
+    </insert>
+    <select id="getRoom" parameterType="java.util.HashMap" resultType="keyMap"><!-- 도착지 -->
+    	select * from ROOM where rno=#{rno}
+    </select>
+    <delete id="deleteMyRoom" parameterType="java.util.HashMap" >
+    	delete from ROOM where rno=#{rno}
+    </delete>
+    <delete id="goOutRoom" parameterType="java.util.HashMap" >
+    	delete from USER_IN_ROOM where l_token=#{l_token}
+    </delete>
+    <select id="getUserInRoom" parameterType="java.util.HashMap" resultType="keyMap"><!-- 도착지 -->
+    	select * from USER_IN_ROOM where rno=#{rno}
+    </select>
+    <select id="getUserInfoThisRoom" parameterType="java.util.HashMap" resultType="keyMap"><!-- 도착지 -->
+    	select b.nickname, b.imagepath, b.gender from USER_IN_ROOM a left join USER b on a.l_token=b.l_token where rno=#{rno}
+    </select>
 </mapper>
