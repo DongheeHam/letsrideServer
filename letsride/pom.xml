@@ -14,7 +14,7 @@
 		<java-version>1.8</java-version>
 		<org.springframework-version>4.3.3.RELEASE</org.springframework-version>
 		<org.slf4j-version>1.7.18</org.slf4j-version>
-		<jackson.version>2.9.0</jackson.version>
+		<jackson.version>2.11.0</jackson.version>
 		<acme4j.version>2.7</acme4j.version>
 	</properties>
 
